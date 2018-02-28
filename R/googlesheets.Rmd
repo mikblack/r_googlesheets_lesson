@@ -1,5 +1,9 @@
 ---
 title: Googlesheets demo
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
 ---
 
 <!-- Make sure to run R/googlesheets_setup.R first -->
@@ -23,8 +27,25 @@ gs_auth(token = here::here("googlesheets_token.rds"))
 
 Now we can list the googlesheets that we have access to
 ```{r}
-#gs_ls()
+gs_ls()
 ```
+
+We could save this into an object and access the keys that way, or we can use the names of the sheets, or the url
+
+```{r}
+my_sheets <- gs_ls()
+
+# this index will change when new sheets are added though
+my_sheets$sheet_title[1]
+my_sheets$sheet_key[1]
+```
+
+To deal with the changing index we can specify in others ways
+```{r}
+gs_title("resbaz2018_example")
+gs_title("resbaz2018_example")$sheet_key
+```
+
 
 Gives the information about the googlesheet from a url
 ```{r}
@@ -64,15 +85,17 @@ resbaz_filt <- resbaz %>% filter(!is.na(topic_intimidation_before) & !is.na(topi
 
 
 ```{r}
-resbaz_filt %>% group_by(topic_intimidation_before) %>% tally()
+resbaz_filt %>% ggplot(., aes(x = topic_intimidation_before)) + geom_histogram()
 ```
 
 
 
 
 ```{r}
-resbaz_filt %>% group_by(topic_intimidation_after) %>% tally()
+resbaz_filt %>% ggplot(., aes(x = topic_intimidation_after)) + geom_histogram()
 ```
+
+### Kable
 
 So now we can make a table using kable
 ```{r}
@@ -86,11 +109,14 @@ session_n <- resbaz_filt %>% group_by(Session) %>% tally()
 intim_delta <- resbaz_filt %>% mutate(delta = topic_intimidation_before - topic_intimidation_after) %>% group_by(Session) %>% summarise(mean_before= mean(topic_intimidation_before), mean_after = mean(topic_intimidation_after), mean_delta = mean(delta))
 ```
 
+#### add_header
 
 ```{r}
 full_join(session_n, intim_delta, by = "Session") %>% #join the tables onto each other
   kable(., digits = 2, format = 'html') %>% kableExtra::add_header_above(c("","", "Topic Intimidation" =3))
 ```
+
+#### groups and styling
 
 How about we add some groups to separate SWC from the others and make it the full width.
 
