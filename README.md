@@ -24,3 +24,10 @@ if the project doesn't automatically open up, manually open it (~/Desktop/r_goog
 Then, inside the R directory is googlesheets_setup.R open this and work through each line to install the needed packages and get the google authentication setup
 
 googlesheets.Rmd has a bit of data analysis to work through
+
+
+Extra documentation for the content can be found here:
+
+googlesheets: https://cran.r-project.org/web/packages/googlesheets/vignettes/basic-usage.html
+googlesheets authentication: https://github.com/jennybc/googlesheets/blob/master/vignettes/managing-auth-tokens.Rmd
+kableExtra: https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html
