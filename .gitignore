@@ -1,6 +1,10 @@
 .Rproj.user
 .Rhistory
 .RData
-.httr-oauth
 
+# ignore the html outputs so that google ids don't get sent to github
+R/*html
+
+# ignore the google authentication files
+.httr-oauth
 googlesheets_token.rds
