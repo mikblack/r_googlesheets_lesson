@@ -1,0 +1,105 @@
+---
+title: Googlesheets demo
+---
+
+<!-- Make sure to run R/googlesheets_setup.R first -->
+
+```{r setup}
+library(here)
+library(googlesheets)
+library(knitr) # brings kable() into namespace
+library(kableExtra)
+library(dplyr)
+library(ggplot2)
+```
+
+## Load data from a googlesheet
+
+Read in the google access token we created with googlesheets_setup.R
+```{r}
+gs_auth(token = here::here("googlesheets_token.rds"))
+```
+
+
+Now we can list the googlesheets that we have access to
+```{r}
+#gs_ls()
+```
+
+Gives the information about the googlesheet from a url
+```{r}
+resbaz_url <- "https://docs.google.com/spreadsheets/d/1GEVg2qVLyEO8si8WwXNx0O85vfxaL1-GTC_m50Q0R9s"
+(resbaz_sheet_info <- gs_url(resbaz_url))
+```
+
+Now we can read that sheet in 
+```{r}
+resbaz <- gs_read(resbaz_sheet_info)
+head(resbaz)
+```
+
+
+## Data analysis
+
+Lets look at some summaries of the data
+
+```{r}
+resbaz %>% group_by(Session) %>% tally()
+```
+
+
+Looks like there are some NAs
+
+Lets find out if our NAs are in the data we care about
+```{r}
+resbaz %>% filter(is.na(topic_intimidation_before) | is.na(topic_intimidation_after)) %>% group_by(Session) %>% tally()
+```
+Looks like we can safely remove them
+
+```{r}
+# remove rows where both topic intimidations are not NA
+resbaz_filt <- resbaz %>% filter(!is.na(topic_intimidation_before) & !is.na(topic_intimidation_after) & !is.na(Session))
+```
+
+
+
+```{r}
+resbaz_filt %>% group_by(topic_intimidation_before) %>% tally()
+```
+
+
+
+
+```{r}
+resbaz_filt %>% group_by(topic_intimidation_after) %>% tally()
+```
+
+So now we can make a table using kable
+```{r}
+resbaz_filt %>% group_by(Session) %>% tally() %>% kable()
+```
+
+We could make the same table and add on information about the "intimidation change" by session.
+
+```{r}
+session_n <- resbaz_filt %>% group_by(Session) %>% tally()
+intim_delta <- resbaz_filt %>% mutate(delta = topic_intimidation_before - topic_intimidation_after) %>% group_by(Session) %>% summarise(mean_before= mean(topic_intimidation_before), mean_after = mean(topic_intimidation_after), mean_delta = mean(delta))
+```
+
+
+```{r}
+full_join(session_n, intim_delta, by = "Session") %>% #join the tables onto each other
+  kable(., digits = 2, format = 'html') %>% kableExtra::add_header_above(c("","", "Topic Intimidation" =3))
+```
+
+How about we add some groups to separate SWC from the others and make it the full width.
+
+```{r}
+full_join(session_n, intim_delta, by = "Session") %>% #join the tables onto each other
+  arrange(desc(Session)) %>%  # will bring SWC to top
+  kable(., digits = 2, format = 'html') %>%
+  kable_styling(full_width = TRUE) %>% 
+  kableExtra::add_header_above(c("","", "Topic Intimidation" =3)) %>%
+  kableExtra::group_rows("SWC",1, 5) # group is rows 1-5 inclusive
+```
+
